@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STREETDEALS AI</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #101014;
+    color: white;
+}
+
+header {
+    padding: 25px;
+    text-align: center;
+    background: #191920;
+    border-bottom: 1px solid #333;
+}
+
+header h1 {
+    color: #a78bfa;
+    font-size: 30px;
+    margin: 0;
+}
+
+header p {
+    color: #aaa;
+}
+
+.container {
+    max-width: 750px;
+    margin: 35px auto;
+    padding: 25px;
+}
+
+.card {
+    background: #1c1c25;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 22px;
+}
+
+h2 {
+    font-size: 19px;
+}
+
+label {
+    display: block;
+    margin: 15px 0;
+}
+
+select, input, button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 9px;
+    border: none;
+    margin-top: 10px;
+    font-size: 15px;
+}
+
+select, input {
+    background: #30303b;
+    color: white;
+}
+
+button {
+    background: #8b5cf6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #7041d8;
+}
+
+/* ---------- zona drag & drop ---------- */
+.dropzone {
+    border: 2px dashed #5b5b72;
+    border-radius: 14px;
+    padding: 35px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #22222d;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.dropzone:hover,
+.dropzone:focus {
+    border-color: #8b5cf6;
+    outline: none;
+}
+
+.dropzone.over {
+    border-color: #a78bfa;
+    background: #2b2542;
+}
+
+.dropzone * {
+    pointer-events: none;
+}
+
+.dropzone .icon {
+    font-size: 40px;
+}
+
+.dropzone .title {
+    font-size: 17px;
+    font-weight: bold;
+    margin: 8px 0 4px;
+}
+
+.dropzone .hint {
+    color: #9a9ab0;
+    font-size: 14px;
+}
+
+#photoNote {
+    color: #fbbf24;
+    font-size: 14px;
+    margin: 12px 0 0;
+    min-height: 18px;
+}
+
+#photoCount {
+    color: #9a9ab0;
+    font-size: 14px;
+    margin: 6px 0 0;
+}
+
+#preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.thumb {
+    position: relative;
+    width: 110px;
+    height: 110px;
+}
+
+.thumb img {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
+}
+
+.thumb button.remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.75);
+    font-size: 14px;
+    line-height: 26px;
+}
+
+.thumb button.remove:hover {
+    background: #ef4444;
+}
+
+#clearAll {
+    display: none;
+    background: #3a3a4a;
+    font-size: 14px;
+    padding: 10px;
+}
+
+#clearAll:hover {
+    background: #4b4b5e;
+}
+
+#message {
+    color: #c4b5fd;
+    margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>👟 STREETDEALS AI</h1>
+    <p>Transformă fotografiile sneakerșilor în conținut pentru Instagram</p>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>📸 1. Încarcă fotografiile</h2>
+
+        <div class="dropzone" id="dropzone" tabindex="0">
+            <div class="icon">📂</div>
+            <div class="title">Trage fotografiile aici</div>
+            <div class="hint">sau dă click ca să le alegi din calculator<br>JPG, PNG sau WEBP · maxim 10 poze</div>
+        </div>
+
+        <input type="file" id="photos" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple style="display:none;">
+
+        <p id="photoNote"></p>
+        <p id="photoCount"></p>
+        <div id="preview"></div>
+        <button id="clearAll" type="button">🗑️ Șterge toate pozele</button>
+    </div>
+
+    <div class="card">
+        <h2>🎯 2. Alege obiectivul</h2>
+        <select id="objective">
+            <option value="growth">Creșterea paginii</option>
+            <option value="sales">Promovarea pentru vânzare</option>
+            <option value="both">Ambele</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <h2>🎬 3. Alege stilul videoclipului</h2>
+        <select id="style">
+            <option>Cinematic</option>
+            <option>Streetwear</option>
+            <option>Luxury</option>
+            <option>TikTok Style</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <h2>💰 4. Detalii produs (opțional)</h2>
+
+        <label>Model sneaker</label>
+        <input type="text" id="model" placeholder="Ex: Nike Air Max">
+
+        <label>Preț (lei)</label>
+        <input type="number" id="price" placeholder="Ex: 450">
+
+        <label>Mărimi disponibile</label>
+        <input type="text" id="sizes" placeholder="Ex: 40, 41, 42, 43">
+    </div>
+
+    <div class="card">
+        <h2>🚀 5. Creează conținutul</h2>
+        <button id="generateBtn" onclick="generate()">Pregătește Reel-ul</button>
+        <p id="message"></p>
+
+        <video id="result" controls
+            style="display:none; width:100%; max-width:300px; margin:15px auto 0; border-radius:12px;"></video>
+
+        <a id="download" download="sneaker-reel.mp4"
+            style="display:none; margin-top:15px; padding:14px; border-radius:9px; background:#22c55e; color:white; font-weight:bold; text-align:center; text-decoration:none;">
+            ⬇️ Descarcă MP4
+        </a>
+
+        <div id="textBox" style="display:none; margin-top:20px;">
+            <h2>✍️ Descriere pentru Instagram</h2>
+            <textarea id="captionText" rows="9"
+                style="width:100%; padding:14px; border-radius:9px; border:none; background:#30303b; color:white; font-size:15px; font-family:Arial, sans-serif;"></textarea>
+            <button onclick="copyText('captionText', this)">📋 Copiază descrierea</button>
+
+            <h2>#️⃣ Hashtaguri</h2>
+            <textarea id="hashtagText" rows="3"
+                style="width:100%; padding:14px; border-radius:9px; border:none; background:#30303b; color:white; font-size:15px; font-family:Arial, sans-serif;"></textarea>
+            <button onclick="copyText('hashtagText', this)">📋 Copiază hashtagurile</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const MAX_PHOTOS = 10;
+let selectedFiles = [];
+let previewUrls = [];
+
+const photos = document.getElementById("photos");
+const dropzone = document.getElementById("dropzone");
+const preview = document.getElementById("preview");
+const photoNote = document.getElementById("photoNote");
+const photoCount = document.getElementById("photoCount");
+const clearAll = document.getElementById("clearAll");
+
+// ---------- alegerea pozelor ----------
+dropzone.addEventListener("click", () => photos.click());
+
+dropzone.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        photos.click();
+    }
+});
+
+photos.addEventListener("change", () => {
+    addFiles(photos.files);
+    photos.value = ""; // ca sa poti alege din nou aceeasi poza
+});
+
+// ---------- drag & drop ----------
+["dragenter", "dragover"].forEach(name => {
+    dropzone.addEventListener(name, e => {
+        e.preventDefault();
+        dropzone.classList.add("over");
+    });
+});
+
+["dragleave", "drop"].forEach(name => {
+    dropzone.addEventListener(name, e => {
+        e.preventDefault();
+        dropzone.classList.remove("over");
+    });
+});
+
+dropzone.addEventListener("drop", e => {
+    addFiles(e.dataTransfer.files);
+});
+
+// daca scapi pozele pe langa zona, browserul nu mai deschide poza in loc de pagina
+window.addEventListener("dragover", e => e.preventDefault());
+window.addEventListener("drop", e => e.preventDefault());
+
+clearAll.addEventListener("click", () => {
+    selectedFiles = [];
+    photoNote.textContent = "";
+    render();
+});
+
+function isAllowed(file) {
+    return /\.(jpe?g|png|webp)$/i.test(file.name);
+}
+
+function addFiles(fileList) {
+    let skipped = 0;
+    let tooMany = false;
+
+    Array.from(fileList).forEach(file => {
+        if (!isAllowed(file)) {
+            skipped++;
+            return;
+        }
+
+        const duplicate = selectedFiles.some(f =>
+            f.name === file.name && f.size === file.size && f.lastModified === file.lastModified
+        );
+        if (duplicate) return;
+
+        if (selectedFiles.length >= MAX_PHOTOS) {
+            tooMany = true;
+            return;
+        }
+
+        selectedFiles.push(file);
+    });
+
+    const notes = [];
+    if (skipped > 0) {
+        notes.push(skipped + " fișier(e) ignorat(e): folosește doar JPG, PNG sau WEBP.");
+    }
+    if (tooMany) {
+        notes.push("Maxim " + MAX_PHOTOS + " poze. Restul au fost ignorate.");
+    }
+    photoNote.textContent = notes.join(" ");
+
+    render();
+}
+
+function render() {
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    previewUrls = [];
+    preview.innerHTML = "";
+
+    selectedFiles.forEach((file, index) => {
+        const url = URL.createObjectURL(file);
+        previewUrls.push(url);
+
+        const box = document.createElement("div");
+        box.className = "thumb";
+
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = file.name;
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "remove";
+        remove.textContent = "✕";
+        remove.title = "Scoate poza";
+        remove.addEventListener("click", () => {
+            selectedFiles.splice(index, 1);
+            photoNote.textContent = "";
+            render();
+        });
+
+        box.appendChild(img);
+        box.appendChild(remove);
+        preview.appendChild(box);
+    });
+
+    photoCount.textContent = selectedFiles.length > 0
+        ? selectedFiles.length + " / " + MAX_PHOTOS + " poze"
+        : "";
+    clearAll.style.display = selectedFiles.length > 0 ? "block" : "none";
+}
+
+// ---------- generarea videoclipului ----------
+async function generate() {
+    const message = document.getElementById("message");
+    const button = document.getElementById("generateBtn");
+    const video = document.getElementById("result");
+    const download = document.getElementById("download");
+    const textBox = document.getElementById("textBox");
+
+    if (selectedFiles.length === 0) {
+        message.textContent = "Te rugăm să încarci cel puțin o fotografie!";
+        return;
+    }
+
+    const formData = new FormData();
+    selectedFiles.forEach(file => formData.append("photos", file));
+    formData.append("objective", document.getElementById("objective").value);
+    formData.append("style", document.getElementById("style").value);
+    formData.append("model", document.getElementById("model").value);
+    formData.append("price", document.getElementById("price").value);
+    formData.append("sizes", document.getElementById("sizes").value);
+
+    button.disabled = true;
+    video.style.display = "none";
+    download.style.display = "none";
+    textBox.style.display = "none";
+    message.textContent = "Se creează videoclipul... poate dura până la un minut.";
+
+    try {
+        const response = await fetch("/generate", { method: "POST", body: formData });
+        const data = await response.json();
+
+        if (!response.ok) {
+            message.textContent = "Eroare: " + data.error;
+            return;
+        }
+
+        video.src = data.url;
+        video.style.display = "block";
+        download.href = data.url;
+        download.style.display = "block";
+
+        document.getElementById("captionText").value = data.caption || "";
+        document.getElementById("hashtagText").value = data.hashtags || "";
+        textBox.style.display = "block";
+
+        message.textContent = "Gata! Videoclipul și textul tău sunt mai jos.";
+    } catch (e) {
+        message.textContent = "Nu pot contacta serverul. Pornește-l cu «node server.js» și deschide pagina la http://localhost:3000";
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function copyText(id, btn) {
+    const text = document.getElementById(id).value;
+    const original = btn.textContent;
+    try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "✅ Copiat!";
+    } catch (e) {
+        document.getElementById(id).select();
+        btn.textContent = "Selectat. Apasă Ctrl + C";
+    }
+    setTimeout(() => { btn.textContent = original; }, 2000);
+}
+</script>
+
+</body>
+</html>
