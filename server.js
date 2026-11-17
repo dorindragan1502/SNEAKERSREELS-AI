@@ -7,7 +7,7 @@ const path = require("path");
 const { generateCaption } = require("./captions");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // foldere de lucru (se creeaza singure)
 const uploadsDir = path.join(__dirname, "uploads");
